@@ -172,23 +172,97 @@ To fine-tune the model:
 
 3. Run the training cell:
 4. Evaluate your existing model or train a new one
+```
+# Model Evaluation
 
-### **Evaluation**
-
-```markdown
 ## 📈 Evaluation
-To evaluate the model, run the evaluation cell:
+
+To evaluate the model, run the following Python code:
+
 ```python
-evaluate(model, tokenizer, test_data)
+import torch
+import numpy as np
+import torch.nn.functional as F
 
+# Define the loss function (same as used during training)
+loss_fn = torch.nn.CrossEntropyLoss()
 
----
+# Extract logits and true labels from the DataFrame
+logits = np.vstack(test_df["logits"])  # Convert list of logits to a numpy array
+true_labels = test_df["true_label"].values
 
-### **Results**
+# Convert to tensors
+logits_tensor = torch.tensor(logits, dtype=torch.float32)
+true_labels_tensor = torch.tensor(true_labels, dtype=torch.long)
 
-```markdown
-## 🔮 Results
-### Confusion Matrix
+# Compute the test loss
+test_loss = loss_fn(logits_tensor, true_labels_tensor).item()
+
+# Compute the predicted labels
+predicted_labels = torch.argmax(logits_tensor, dim=1)
+
+# Calculate accuracy
+correct_predictions = (predicted_labels == true_labels_tensor).sum().item()
+accuracy = correct_predictions / len(true_labels_tensor)
+
+# Output the results
+print(f"Test Loss: {test_loss:.4f}")
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+```
+## Analysis of Classification Results
+
+### 5-Class Classification Report:
+The initial classification task involved 5 distinct classes. The performance metrics for these are as follows:
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| 0     | 0.74      | 0.80   | 0.77     | 2000    |
+| 1     | 0.59      | 0.47   | 0.52     | 2000    |
+| 2     | 0.56      | 0.54   | 0.55     | 2000    |
+| 3     | 0.54      | 0.59   | 0.56     | 2000    |
+| 4     | 0.71      | 0.76   | 0.74     | 2000    |
+
+- **Accuracy**: The overall accuracy across these five classes is 63%.
+- **Macro Average**: All classes have equal weight, resulting in 63% for precision, recall, and F1-score.
+- **Weighted Average**: These metrics also stand at 63%, factoring in class support.
+
+### Combining Classes into 3 Groups:
+To better represent sentiment, the five original classes were grouped into broader categories:
+
+1. **Negative**: Combines Classes 0 and 1.
+2. **Neutral**: Maps directly from Class 2.
+3. **Positive**: Combines Classes 3 and 4.
+
+#### Rationale for Grouping:
+- **Negative Sentiment**: Class 0 and Class 1 were closely aligned in representing negative emotions.
+- **Neutral Sentiment**: Class 2 was retained as its own category to preserve neutrality.
+- **Positive Sentiment**: Class 3 and Class 4 together provided a unified representation of positive emotions.
+
+### 3-Class Classification Report:
+After combining classes, the performance improved significantly:
+
+| Sentiment | Precision | Recall | F1-Score | Support |
+|-----------|-----------|--------|----------|---------|
+| Negative  | 0.89      | 0.84   | 0.86     | 4000    |
+| Neutral   | 0.56      | 0.54   | 0.55     | 2000    |
+| Positive  | 0.85      | 0.92   | 0.88     | 4000    |
+
+- **Accuracy**: Achieved an accuracy of 80.83%.
+- **Macro Average**: Improved to 76% for precision, recall, and F1-score, reflecting the balanced sentiment representation.
+- **Weighted Average**: Increased to 81% due to the higher performance of negative and positive sentiment classes.
+
+### 🔮 Results:
+- The 3-class grouping provides a clearer and more balanced understanding of sentiment.
+- Improvements in accuracy and F1-score demonstrate the benefits of aggregating classes for sentiment analysis.
+
+### Confusion Matrix:
+#### 5-Class Confusion Matrix:
+![5-Class Confusion Matrix](Graphs&Pictures/Confusion_matrix_5x5.png)
+
+#### 3-Class Confusion Matrix:
+![3-Class Confusion Matrix](Graphs&Pictures/Confusion_matrix_3x3.png)
+
 
 ## 📌 Limitations
 ⚠️ Limited to English text; performance may degrade with non-English text.  

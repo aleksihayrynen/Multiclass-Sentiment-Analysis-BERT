@@ -360,7 +360,8 @@ The solution wasnt really working since the reassign function was really basic a
 ---
 
 ## 🤝 Information
-- **Project Created By**: Aleksi (You)
+- **Project Created By**: Aleksi Häyrynen
+
 This project was made for my OpenSource software course during my exchange in Korean University. This was the first time I got to learn and apply datascience and Artificial intelligence. I wish I could have used even a larger part of the dataset, but the lack of GPU and time in Collab made this almost impossible. 
 
 ---
